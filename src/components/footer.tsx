@@ -6,7 +6,7 @@ export function Footer() {
     <footer className="w-full border-t bg-secondary">
       <div className="container flex flex-col items-center justify-between gap-4 px-4 py-6 md:flex-row md:px-6">
         <p className="text-sm text-muted-foreground">
-          &copy; {currentYear} Avi Espa. Todos los derechos reservados.
+          &copy; {currentYear} Tijuana Shop. Todos los derechos reservados.
         </p>
         <nav className="flex gap-4 sm:gap-6">
           <Link
