@@ -26,6 +26,7 @@ export interface User {
   location?: string;
   createdAt: any; // Can be a server timestamp
   listings?: string[];
+  favorites?: string[];
 }
 
 

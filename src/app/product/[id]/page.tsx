@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getProduct, getUser, getOrCreateChat } from '@/lib/data';
+import { getProduct, getUser, getOrCreateChat, toggleFavorite, getUser as getUserData } from '@/lib/data';
 import type { Product, User } from '@/lib/types';
 import { useFirebase, useUser as useAuthUser } from '@/firebase';
 import {
@@ -23,6 +23,7 @@ import { MessageCircle, Phone, Heart, Share2, Loader2 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 function ProductSkeleton() {
   return (
@@ -68,6 +69,9 @@ export default function ProductPage() {
   const [seller, setSeller] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isChatting, setIsChatting] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+
 
   useEffect(() => {
     if (!id || !firestore) return;
@@ -89,11 +93,19 @@ export default function ProductPage() {
           setSeller(sellerData);
         }
       }
+
+      if (currentUser) {
+          const userData = await getUserData(firestore, currentUser.uid);
+          if (userData?.favorites?.includes(id)) {
+              setIsFavorited(true);
+          }
+      }
+
       setLoading(false);
     };
 
     fetchProductAndSeller();
-  }, [id, firestore]);
+  }, [id, firestore, currentUser]);
 
   const handleSendMessage = async () => {
     if (!currentUser) {
@@ -132,6 +144,38 @@ export default function ProductPage() {
     }
   };
 
+  const handleToggleFavorite = async () => {
+      if (!currentUser) {
+        toast({
+            variant: "destructive",
+            title: "Inicia sesión",
+            description: "Debes iniciar sesión para guardar favoritos."
+        });
+        router.push('/auth');
+        return;
+      }
+
+      if (!product) return;
+
+      setIsFavoriteLoading(true);
+      try {
+          const newFavoriteStatus = await toggleFavorite(firestore, currentUser.uid, product.id);
+          setIsFavorited(newFavoriteStatus);
+           toast({
+                title: newFavoriteStatus ? "Añadido a favoritos" : "Eliminado de favoritos",
+            });
+      } catch (error) {
+          console.error("Error toggling favorite:", error);
+           toast({
+                variant: "destructive",
+                title: "Error",
+                description: "No se pudo actualizar tus favoritos."
+            });
+      } finally {
+        setIsFavoriteLoading(false);
+      }
+  }
+
 
   if (loading) {
     return (
@@ -166,8 +210,8 @@ export default function ProductPage() {
               <Share2 className="h-5 w-5" />
               <span className="sr-only">Compartir</span>
             </Button>
-            <Button variant="ghost" size="icon">
-              <Heart className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={handleToggleFavorite} disabled={isFavoriteLoading}>
+              <Heart className={cn("h-5 w-5", isFavorited && "fill-red-500 text-red-500")} />
               <span className="sr-only">Guardar favorito</span>
             </Button>
           </div>

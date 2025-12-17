@@ -14,6 +14,9 @@ import {
   or,
   updateDoc,
   Timestamp,
+  arrayUnion,
+  arrayRemove,
+  writeBatch,
 } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
 import type { Product, Category, User, Chat, Message } from './types';
@@ -31,6 +34,7 @@ export async function getProducts(db: Firestore, {
   sellerId,
   minPrice,
   maxPrice,
+  ids
 }: {
   categories?: string[];
   conditions?: string[];
@@ -38,12 +42,17 @@ export async function getProducts(db: Firestore, {
   sellerId?: string;
   minPrice?: number;
   maxPrice?: number;
+  ids?: string[];
 } = {}): Promise<Product[]> {
   try {
     const productsRef = collection(db, "products");
     
     let filters = [];
 
+    if (ids) {
+        if (ids.length === 0) return []; // No IDs, no products
+        filters.push(where('__name__', 'in', ids));
+    }
     if (sellerId) {
         filters.push(where("sellerId", "==", sellerId));
     }
@@ -285,4 +294,52 @@ export async function sendMessage(db: Firestore, chatId: string, senderId: strin
             timestamp: serverTimestamp(),
         }
     });
+}
+
+// --- Favorites Functions ---
+
+export async function toggleFavorite(db: Firestore, userId: string, productId: string) {
+    const userRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+        throw new Error("User not found");
+    }
+
+    const favorites = userDoc.data().favorites || [];
+    const isFavorited = favorites.includes(productId);
+
+    if (isFavorited) {
+        await updateDoc(userRef, {
+            favorites: arrayRemove(productId)
+        });
+    } else {
+        await updateDoc(userRef, {
+            favorites: arrayUnion(productId)
+        });
+    }
+
+    return !isFavorited;
+}
+
+export async function getFavoriteProducts(db: Firestore, userId: string): Promise<Product[]> {
+    const user = await getUser(db, userId);
+    if (!user || !user.favorites || user.favorites.length === 0) {
+        return [];
+    }
+    
+    const favoriteProductIds = user.favorites;
+    
+    // Firestore 'in' queries are limited to 30 items per query.
+    // We need to chunk the requests.
+    const products: Product[] = [];
+    const chunkSize = 30;
+
+    for (let i = 0; i < favoriteProductIds.length; i += chunkSize) {
+        const chunk = favoriteProductIds.slice(i, i + chunkSize);
+        const chunkProducts = await getProducts(db, { ids: chunk });
+        products.push(...chunkProducts);
+    }
+
+    return products;
 }

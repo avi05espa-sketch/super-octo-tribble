@@ -32,6 +32,13 @@
           "type": "string",
           "format": "date-time",
           "description": "The date and time the user was created."
+        },
+        "favorites": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "Array of product IDs that the user has favorited."
         }
       },
       "required": ["uid", "name", "email", "createdAt"]
@@ -143,5 +150,3 @@
     }
   }
 }
-
-    
