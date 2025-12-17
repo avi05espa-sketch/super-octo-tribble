@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/accordion"
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useSearchParams } from "next/navigation";
 
 const iconMap: { [key: string]: React.ElementType } = {
   Autos: Car,
@@ -104,6 +105,7 @@ const FilterSection = ({
 
 export default function Home() {
   const { firestore } = useFirebase();
+  const searchParams = useSearchParams();
   const categories = useMemo(() => getCategories(), []);
   
   const [products, setProducts] = useState<Product[]>([]);
@@ -114,16 +116,19 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
+      const searchTerm = searchParams.get('search') || undefined;
+
       const fetchedProducts = await getProducts(firestore, { 
           categories: selectedCategories, 
-          conditions: selectedConditions 
+          conditions: selectedConditions,
+          searchTerm: searchTerm,
       });
       setProducts(fetchedProducts);
       setIsLoading(false);
     };
 
     fetchProducts();
-  }, [firestore, selectedCategories, selectedConditions]);
+  }, [firestore, selectedCategories, selectedConditions, searchParams]);
 
   const handleCategoryChange = (id: string, checked: boolean) => {
     setSelectedCategories(prev => 

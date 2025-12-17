@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useFirebase, useUser } from '@/firebase';
 import { getChat, sendMessage } from '@/lib/data';
-import { collection, query, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, Timestamp, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import type { Chat, Message, User as ChatUser } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -136,14 +136,16 @@ export default function ChatPage() {
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!firestore || !chatId || !currentUser || !newMessage.trim()) return;
+        const currentMessage = newMessage;
+        setNewMessage("");
 
         try {
-            await sendMessage(firestore, chatId, currentUser.uid, newMessage);
-            setNewMessage("");
+            await sendMessage(firestore, chatId, currentUser.uid, currentMessage);
              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         } catch (error) {
             console.error("Error sending message:", error);
             toast({ variant: "destructive", title: "Error", description: "No se pudo enviar el mensaje." });
+            setNewMessage(currentMessage);
         }
     };
 
@@ -194,7 +196,7 @@ export default function ChatPage() {
                 <form onSubmit={handleSendMessage} className="flex gap-2">
                     <Input 
                         value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
+                        onChange={(e) => setNewMessage(e.g.target.value)}
                         placeholder="Escribe un mensaje..." 
                         className="flex-1"
                         autoComplete="off"
@@ -207,6 +209,3 @@ export default function ChatPage() {
         </div>
     );
 }
-
-
-    

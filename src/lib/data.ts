@@ -11,7 +11,8 @@ import {
   serverTimestamp,
   limit,
   and,
-  or
+  or,
+  updateDoc
 } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
 import type { Product, Category, User, Chat, Message } from './types';
@@ -56,7 +57,7 @@ export async function getProducts(db: Firestore, {
     }
 
     if (filters.length > 0 && !searchTerm) {
-      q = query(q, ...filters);
+      q = query(productsRef, orderBy("createdAt", "desc"), and(...filters));
     }
     
 
@@ -237,5 +238,3 @@ export async function sendMessage(db: Firestore, chatId: string, senderId: strin
         }
     });
 }
-
-    

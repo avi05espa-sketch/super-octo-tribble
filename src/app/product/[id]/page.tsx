@@ -28,7 +28,7 @@ function ProductSkeleton() {
   return (
     <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div>
-            <Skeleton className="aspect-w-16 aspect-h-9 rounded-lg w-full h-[400px] md:h-[600px]" />
+            <Skeleton className="aspect-video w-full h-[400px] md:h-[600px] rounded-lg" />
         </div>
         <div className="flex flex-col gap-6">
             <div>
@@ -183,12 +183,11 @@ export default function ProductPage() {
                    const imageHint = placeholder?.imageHint || 'product photo';
                   return (
                     <CarouselItem key={index}>
-                      <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden border">
+                      <div className="aspect-video relative rounded-lg overflow-hidden border">
                          <Image
                             src={img}
                             alt={`${product.title} - imagen ${index + 1}`}
-                            width={800}
-                            height={600}
+                            fill
                             className="object-cover w-full h-full"
                             data-ai-hint={imageHint}
                         />
@@ -253,5 +252,3 @@ export default function ProductPage() {
     </div>
   );
 }
-
-    
