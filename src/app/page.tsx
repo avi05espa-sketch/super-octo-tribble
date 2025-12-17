@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -29,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const iconMap: { [key: string]: React.ElementType } = {
   Autos: Car,
@@ -57,13 +59,13 @@ const FilterSection = ({
         } else {
             params.append(type, value);
         }
-        router.push(`?${params.toString()}`);
+        router.push(`/?${params.toString()}`);
     };
     
     const handlePriceChange = (values: number[]) => {
         const params = new URLSearchParams(searchParams.toString());
         params.set('maxPrice', values[0].toString());
-        router.push(`?${params.toString()}`);
+        router.push(`/?${params.toString()}`);
     }
 
     const selectedCategories = searchParams.getAll('categories');
@@ -145,6 +147,21 @@ const FilterSection = ({
     );
 }
 
+function ProductGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="space-y-2">
+          <Skeleton className="aspect-square w-full rounded-lg" />
+          <Skeleton className="h-5 w-3/4" />
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-4 w-1/4" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 export default function Home() {
   const { firestore } = useFirebase();
@@ -185,16 +202,16 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background font-body">
       <Header />
       <main className="flex-1">
-        <section className="w-full bg-gradient-to-r from-teal-400 to-blue-500 text-white relative">
+        <section className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white relative">
             <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between py-12 md:py-20">
                 <div className="md:w-1/2 mb-8 md:mb-0">
                     <h1 className="text-4xl md:text-5xl font-bold leading-tight font-headline">Tijuana Shop</h1>
                     <p className="text-xl mt-2 mb-6">El súper mercado de segunda mano</p>
                     <div className="flex gap-4">
-                        <Button size="lg" className="bg-background text-primary hover:bg-background/90" onClick={scrollToProducts}>Ver Anuncios</Button>
+                        <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90" onClick={scrollToProducts}>Ver Anuncios</Button>
                         <Link href="/auth?tab=register" passHref>
                           <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-primary">Registrarse</Button>
                         </Link>
@@ -220,9 +237,7 @@ export default function Home() {
                 <div id="recent-products" className="w-full md:w-3/4 lg:w-4/5">
                     <h2 className="text-2xl font-bold tracking-tighter mb-6">Productos Recientes</h2>
                     {isLoading ? (
-                      <div className="flex justify-center items-center h-64">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      </div>
+                      <ProductGridSkeleton />
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                           {products.map((product) => (
@@ -253,3 +268,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

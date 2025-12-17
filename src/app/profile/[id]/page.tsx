@@ -9,32 +9,36 @@ import type { Product, User } from '@/lib/types';
 import { useFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Mail, MapPin } from 'lucide-react';
+import { Mail, MapPin } from 'lucide-react';
 import { ProductCard } from '@/components/product-card';
 import Link from 'next/link';
 import { StarRating } from '@/components/star-rating';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function ProfileSkeleton() {
   return (
      <div className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
-      <div className="flex flex-col md:flex-row items-center gap-8">
-        <div className="animate-pulse h-32 w-32 rounded-full bg-muted"></div>
-        <div className="flex-1 space-y-4">
-            <div className="animate-pulse h-8 w-48 rounded-md bg-muted"></div>
-            <div className="animate-pulse h-5 w-32 rounded-md bg-muted"></div>
+        <div className="flex flex-col md:flex-row items-center gap-8 bg-card p-8 rounded-lg border">
+            <Skeleton className="h-32 w-32 rounded-full" />
+            <div className="flex-1 space-y-3 text-center md:text-left">
+                <Skeleton className="h-9 w-48 mx-auto md:mx-0" />
+                <Skeleton className="h-5 w-32 mx-auto md:mx-0" />
+                <div className="flex items-center justify-center md:justify-start gap-4">
+                  <Skeleton className="h-5 w-24" />
+                  <Skeleton className="h-5 w-36" />
+                </div>
+                <Skeleton className="h-4 w-40 mx-auto md:mx-0" />
+            </div>
         </div>
-      </div>
        <div className="mt-12">
-        <div className="animate-pulse h-7 w-40 rounded-md bg-muted mb-6"></div>
+        <Skeleton className="h-7 w-52 mb-6" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-                 <div key={i} className="animate-pulse rounded-lg bg-muted">
-                    <div className="aspect-square w-full bg-muted/50 rounded-t-lg"></div>
-                    <div className="p-3 space-y-3">
-                         <div className="h-5 w-3/4 bg-muted/50 rounded-md"></div>
-                         <div className="h-6 w-1/2 bg-muted/50 rounded-md"></div>
-                         <div className="h-4 w-1/4 bg-muted/50 rounded-md"></div>
-                    </div>
+                 <div key={i} className="space-y-2">
+                    <Skeleton className="aspect-square w-full rounded-lg" />
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-6 w-1/2" />
+                    <Skeleton className="h-4 w-1/4" />
                 </div>
             ))}
         </div>
@@ -76,7 +80,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-       <div className="flex flex-col min-h-screen">
+       <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-900">
           <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center justify-between px-4 md:px-6">
               <Button variant="outline" asChild>
@@ -96,7 +100,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-900 font-body">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <Button variant="outline" asChild>
@@ -148,3 +152,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
