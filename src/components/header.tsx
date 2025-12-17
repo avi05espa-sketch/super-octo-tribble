@@ -18,8 +18,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { getAuth, signOut } from 'firebase/auth';
 import { Input } from './ui/input';
-import { Search } from 'lucide-react';
-import { FormEvent } from 'react';
+import { Loader2, Search } from 'lucide-react';
+import { FormEvent, useState } from 'react';
+import { interpretSearchQuery } from '@/ai/flows/search-flow';
 
 function UserNav() {
     const { user, loading } = useUser();
@@ -87,29 +88,53 @@ function SearchBar() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
+    const [isSearching, setIsSearching] = useState(false);
 
-    const handleSearch = (e: FormEvent<HTMLFormElement>) => {
+    const handleSearch = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setIsSearching(true);
         const formData = new FormData(e.currentTarget);
         const searchQuery = formData.get('search') as string;
         
+        const params = new URLSearchParams();
+
+        if (searchQuery) {
+            try {
+                const interpretation = await interpretSearchQuery({ query: searchQuery });
+                
+                if(interpretation.searchTerm) params.set('search', interpretation.searchTerm);
+                if(interpretation.category) params.set('categories', interpretation.category);
+                if(interpretation.condition) params.set('conditions', interpretation.condition);
+                if(interpretation.minPrice) params.set('minPrice', interpretation.minPrice.toString());
+                if(interpretation.maxPrice) params.set('maxPrice', interpretation.maxPrice.toString());
+
+            } catch (error) {
+                console.error("AI search interpretation failed, falling back to basic search:", error);
+                params.set('search', searchQuery);
+            }
+        }
+        
         if (pathname !== '/') {
-            router.push(`/?search=${encodeURIComponent(searchQuery)}`);
+            router.push(`/?${params.toString()}`);
         } else {
-            const params = new URLSearchParams(searchParams.toString());
-            params.set('search', searchQuery);
             router.push(`?${params.toString()}`);
         }
+        setIsSearching(false);
     }
 
     return (
         <form onSubmit={handleSearch} className="relative w-full max-w-md hidden md:flex">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          {isSearching ? (
+             <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+          ) : (
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          )}
           <Input 
             name="search"
-            placeholder="Buscar en Tijuana Shop..."
+            placeholder="Busca con IA: 'iPhone nuevo por menos de 10000'"
             defaultValue={searchParams.get('search') || ''}
             className="pl-9 w-full bg-zinc-100 dark:bg-zinc-800 focus:bg-background"
+            disabled={isSearching}
           />
         </form>
     );

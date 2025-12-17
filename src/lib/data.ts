@@ -28,16 +28,19 @@ export async function getProducts(db: Firestore, {
   conditions,
   searchTerm,
   sellerId,
+  minPrice,
+  maxPrice,
 }: {
   categories?: string[];
   conditions?: string[];
   searchTerm?: string;
   sellerId?: string;
+  minPrice?: number;
+  maxPrice?: number;
 } = {}): Promise<Product[]> {
   try {
     const productsRef = collection(db, "products");
     
-    let q;
     const filters = [];
 
     if (sellerId) {
@@ -49,26 +52,33 @@ export async function getProducts(db: Firestore, {
     if (conditions && conditions.length > 0) {
         filters.push(where("condition", "in", conditions));
     }
-     if (searchTerm) {
-      // Firestore doesn't support full-text search natively on multiple fields.
-      // A more robust solution would use a dedicated search service like Algolia or Elasticsearch.
-      // For this app, we will do a simple "startsWith" on the title.
-      q = query(productsRef, 
-        where('title', '>=', searchTerm),
-        where('title', '<=', searchTerm + '\uf8ff'),
-        orderBy("title"), 
-        orderBy("createdAt", "desc")
-      );
+    if (minPrice) {
+        filters.push(where("price", ">=", Number(minPrice)));
     }
+    if (maxPrice) {
+        filters.push(where("price", "<=", Number(maxPrice)));
+    }
+    
+    let q;
 
-    if (filters.length > 0) {
-        q = query(productsRef, orderBy("createdAt", "desc"), and(...filters));
-    } else if (!searchTerm) {
+    if (searchTerm) {
+        // Firestore doesn't support full-text search on multiple fields well.
+        // A robust solution uses a search service like Algolia or Elasticsearch.
+        // We do a simple "startsWith" on the title.
+        // When a search term is present, we ignore other filters for simplicity,
+        // unless they are also provided by the AI.
+        const searchFilters = [
+            ...filters,
+            where('title', '>=', searchTerm),
+            where('title', '<=', searchTerm + '\uf8ff'),
+        ];
+        q = query(productsRef, and(...searchFilters), orderBy("title"), orderBy("createdAt", "desc"));
+    } else if (filters.length > 0) {
+        q = query(productsRef, and(...filters), orderBy("createdAt", "desc"));
+    } else {
         q = query(productsRef, orderBy("createdAt", "desc"));
     }
     
-
-    if (!q) return []; // If no query is built, return empty array
 
     const querySnapshot = await getDocs(q);
     const products = querySnapshot.docs.map(doc => {
@@ -89,6 +99,7 @@ export async function getProducts(db: Firestore, {
     return products;
   } catch (error) {
     console.error("Error fetching products from Firestore:", error);
+    // If a query fails (e.g. requires an index not yet created), return empty.
     return [];
   }
 }

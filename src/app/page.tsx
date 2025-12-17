@@ -26,7 +26,9 @@ import {
 } from "@/components/ui/accordion"
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 
 const iconMap: { [key: string]: React.ElementType } = {
   Autos: Car,
@@ -38,69 +40,110 @@ const iconMap: { [key: string]: React.ElementType } = {
 
 const FilterSection = ({ 
     categories,
-    selectedCategories,
-    onCategoryChange,
-    selectedConditions,
-    onConditionChange
 }: { 
     categories: Category[],
-    selectedCategories: string[],
-    onCategoryChange: (id: string, checked: boolean) => void,
-    selectedConditions: string[],
-    onConditionChange: (condition: string, checked: boolean) => void
-}) => (
-  <aside className="w-full md:w-1/4 lg:w-1/5 p-4">
-    <h2 className="text-xl font-bold mb-4">Filtros</h2>
-    <Accordion type="multiple" defaultValue={['category', 'condition']} className="w-full">
-      <AccordionItem value="category">
-        <AccordionTrigger>Categoría</AccordionTrigger>
-        <AccordionContent>
-          <div className="grid gap-2">
-            {categories.map((cat) => (
-                 <div key={cat.id} className="flex items-center space-x-2">
-                    <Checkbox 
-                        id={`cat-${cat.id}`} 
-                        checked={selectedCategories.includes(cat.id)}
-                        onCheckedChange={(checked) => onCategoryChange(cat.id, checked as boolean)}
+}) => {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const handleCheckedChange = (type: 'categories' | 'conditions', value: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        const currentValues = params.getAll(type);
+        
+        if (currentValues.includes(value)) {
+            const newValues = currentValues.filter(v => v !== value);
+            params.delete(type);
+            newValues.forEach(v => params.append(type, v));
+        } else {
+            params.append(type, value);
+        }
+        router.push(`?${params.toString()}`);
+    };
+    
+    const handlePriceChange = (values: number[]) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('maxPrice', values[0].toString());
+        router.push(`?${params.toString()}`);
+    }
+
+    const selectedCategories = searchParams.getAll('categories');
+    const selectedConditions = searchParams.getAll('conditions');
+    const maxPrice = Number(searchParams.get('maxPrice') || '10000');
+
+
+    return (
+      <aside className="w-full md:w-1/4 lg:w-1/5 p-4">
+        <h2 className="text-xl font-bold mb-4">Filtros</h2>
+        <Accordion type="multiple" defaultValue={['category', 'condition', 'price']} className="w-full">
+          <AccordionItem value="category">
+            <AccordionTrigger>Categoría</AccordionTrigger>
+            <AccordionContent>
+              <div className="grid gap-2">
+                {categories.map((cat) => (
+                     <div key={cat.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                            id={`cat-${cat.id}`} 
+                            checked={selectedCategories.includes(cat.id)}
+                            onCheckedChange={() => handleCheckedChange('categories', cat.id)}
+                        />
+                        <Label htmlFor={`cat-${cat.id}`}>{cat.name}</Label>
+                    </div>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="condition">
+            <AccordionTrigger>Condición</AccordionTrigger>
+            <AccordionContent>
+               <div className="grid gap-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="cond-new" 
+                    checked={selectedConditions.includes('Nuevo')}
+                    onCheckedChange={() => handleCheckedChange('conditions', 'Nuevo')}
                     />
-                    <Label htmlFor={`cat-${cat.id}`}>{cat.name}</Label>
+                  <Label htmlFor="cond-new">Nuevo</Label>
                 </div>
-            ))}
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="condition">
-        <AccordionTrigger>Condición</AccordionTrigger>
-        <AccordionContent>
-           <div className="grid gap-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="cond-new" 
-                checked={selectedConditions.includes('Nuevo')}
-                onCheckedChange={(checked) => onConditionChange('Nuevo', checked as boolean)}
-                />
-              <Label htmlFor="cond-new">Nuevo</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="cond-used"
-                checked={selectedConditions.includes('Usado')}
-                onCheckedChange={(checked) => onConditionChange('Usado', checked as boolean)}
-              />
-              <Label htmlFor="cond-used">Usado</Label>
-            </div>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-       <AccordionItem value="price">
-        <AccordionTrigger>Precio</AccordionTrigger>
-        <AccordionContent>
-          <p>Controles de precio aquí.</p>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  </aside>
-);
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="cond-used"
+                    checked={selectedConditions.includes('Usado')}
+                    onCheckedChange={() => handleCheckedChange('conditions', 'Usado')}
+                  />
+                  <Label htmlFor="cond-used">Usado</Label>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+           <AccordionItem value="price">
+            <AccordionTrigger>Precio</AccordionTrigger>
+            <AccordionContent>
+               <div className="space-y-4">
+                    <Slider
+                        defaultValue={[maxPrice]}
+                        max={10000}
+                        step={100}
+                        onValueCommit={handlePriceChange}
+                    />
+                    <div className="flex justify-between items-center text-sm text-muted-foreground">
+                        <span>$0</span>
+                         <div className="flex items-center gap-2">
+                            <span>hasta</span>
+                            <Input 
+                                type="text"
+                                value={`$${maxPrice.toLocaleString()}`}
+                                readOnly
+                                className="w-24 h-8 text-center"
+                            />
+                        </div>
+                    </div>
+               </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </aside>
+    );
+}
 
 
 export default function Home() {
@@ -110,19 +153,21 @@ export default function Home() {
   
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
-      const searchTerm = searchParams.get('search') || undefined;
+      const params = new URLSearchParams(searchParams.toString());
+      
+      const searchOptions = {
+        searchTerm: params.get('search') || undefined,
+        categories: params.getAll('categories'),
+        conditions: params.getAll('conditions'),
+        minPrice: Number(params.get('minPrice')) || undefined,
+        maxPrice: Number(params.get('maxPrice')) || undefined,
+      };
 
-      const fetchedProducts = await getProducts(firestore, { 
-          categories: selectedCategories, 
-          conditions: selectedConditions,
-          searchTerm: searchTerm,
-      });
+      const fetchedProducts = await getProducts(firestore, searchOptions);
       setProducts(fetchedProducts);
       setIsLoading(false);
     };
@@ -130,20 +175,8 @@ export default function Home() {
     if (firestore) {
         fetchProducts();
     }
-  }, [firestore, selectedCategories, selectedConditions, searchParams]);
+  }, [firestore, searchParams]);
 
-  const handleCategoryChange = (id: string, checked: boolean) => {
-    setSelectedCategories(prev => 
-      checked ? [...prev, id] : prev.filter(catId => catId !== id)
-    );
-  };
-    
-  const handleConditionChange = (condition: string, checked: boolean) => {
-    setSelectedConditions(prev => 
-      checked ? [...prev, condition] : prev.filter(c => c !== condition)
-    );
-  };
-  
   const scrollToProducts = () => {
     const productsSection = document.getElementById('recent-products');
     if (productsSection) {
@@ -183,10 +216,6 @@ export default function Home() {
             <div className="flex flex-col md:flex-row gap-8">
                 <FilterSection 
                     categories={categories}
-                    selectedCategories={selectedCategories}
-                    onCategoryChange={handleCategoryChange}
-                    selectedConditions={selectedConditions}
-                    onConditionChange={handleConditionChange}
                 />
                 <div id="recent-products" className="w-full md:w-3/4 lg:w-4/5">
                     <h2 className="text-2xl font-bold tracking-tighter mb-6">Productos Recientes</h2>
@@ -200,6 +229,12 @@ export default function Home() {
                               <ProductCard key={product.id} product={product} />
                           ))}
                       </div>
+                    )}
+                     { !isLoading && products.length === 0 && (
+                        <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg text-center">
+                            <h3 className="text-xl font-semibold">No se encontraron productos</h3>
+                            <p className="text-muted-foreground mt-2">Intenta ajustar tus filtros o tu búsqueda.</p>
+                        </div>
                     )}
                 </div>
             </div>
