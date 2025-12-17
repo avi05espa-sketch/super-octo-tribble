@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileoverview A search query interpretation AI flow.
@@ -53,12 +54,16 @@ const prompt = ai.definePrompt({
 User Query: {{{query}}}
 
 Analyze the query and extract the following information:
-- The main search term (e.g., "laptop", "bicicleta", "zapatos de mujer").
+- The main search term (e.g., "laptop", "bicicleta", "zapatos de mujer"). This should be the core item, separate from modifiers like price, condition, or category.
 - A relevant category, if it can be inferred. Available categories are: ${categories.join(', ')}.
 - The product's condition, if specified (either "Nuevo" or "Usado").
-- A minimum and maximum price, if mentioned. For phrases like "less than 500 pesos", set maxPrice to 500. For "more than 1000", set minPrice to 1000.
+- A minimum and maximum price, if mentioned.
+  - For phrases like "less than 500 pesos" or "no more than 500", set maxPrice to 500.
+  - For "more than 1000", set minPrice to 1000.
+  - For "around 2000", you can set a range like minPrice: 1800, maxPrice: 2200.
+  - If a single price is mentioned (e.g., "iPhone for 8000"), set both minPrice and maxPrice close to that value to create a narrow range.
 
-Return the result as a JSON object matching the output schema. If a field is not present in the query, omit it from the output.`,
+Return the result as a JSON object matching the output schema. If a field is not present in the query, omit it from the output. Be concise with the searchTerm.`,
 });
 
 
