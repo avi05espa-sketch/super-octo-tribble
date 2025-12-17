@@ -110,7 +110,7 @@ function LoginForm() {
           ¿Olvidaste tu contraseña?
         </Link>
       </div>
-      <Button type="submit" className="w-full bg-teal-400 hover:bg-teal-500 text-white" disabled={isLoading}>
+      <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Iniciando..." : "Iniciar Sesión"}
       </Button>
     </form>
@@ -262,7 +262,7 @@ function RegisterForm() {
           .
         </Label>
       </div>
-      <Button type="submit" className="w-full bg-teal-400 hover:bg-teal-500 text-white" disabled={isLoading || !termsAccepted || !locationVerified}>
+      <Button type="submit" className="w-full" disabled={isLoading || !termsAccepted || !locationVerified}>
         <UserPlus className="mr-2 h-4 w-4" />
         {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
       </Button>

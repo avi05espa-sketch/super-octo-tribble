@@ -37,7 +37,7 @@ function UserNav() {
                 <Button variant="ghost" asChild>
                     <Link href="/auth">Iniciar Sesión</Link>
                 </Button>
-                <Button asChild className="bg-red-500 hover:bg-red-600">
+                <Button asChild>
                     <Link href="/auth?tab=register">Crear Cuenta</Link>
                 </Button>
             </div>

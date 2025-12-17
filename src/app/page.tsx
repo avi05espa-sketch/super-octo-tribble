@@ -191,12 +191,12 @@ export default function Home() {
         <section className="w-full bg-gradient-to-r from-teal-400 to-blue-500 text-white relative">
             <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between py-12 md:py-20">
                 <div className="md:w-1/2 mb-8 md:mb-0">
-                    <h1 className="text-4xl md:text-5xl font-bold leading-tight">Tijuana Shop</h1>
+                    <h1 className="text-4xl md:text-5xl font-bold leading-tight font-headline">Tijuana Shop</h1>
                     <p className="text-xl mt-2 mb-6">El súper mercado de segunda mano</p>
                     <div className="flex gap-4">
-                        <Button size="lg" className="bg-red-500 hover:bg-red-600" onClick={scrollToProducts}>Ver Anuncios</Button>
+                        <Button size="lg" className="bg-background text-primary hover:bg-background/90" onClick={scrollToProducts}>Ver Anuncios</Button>
                         <Link href="/auth?tab=register" passHref>
-                          <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-teal-500">Registrarse</Button>
+                          <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-primary">Registrarse</Button>
                         </Link>
                     </div>
                 </div>

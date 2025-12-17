@@ -24,7 +24,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                 data-ai-hint={imageHint}
             />
-            <Badge variant={product.condition === 'Nuevo' ? 'default' : 'secondary'} className="absolute top-2 right-2 bg-red-500 text-white">
+            <Badge variant={product.condition === 'Nuevo' ? 'default' : 'secondary'} className="absolute top-2 right-2">
                 {product.condition}
             </Badge>
         </div>
