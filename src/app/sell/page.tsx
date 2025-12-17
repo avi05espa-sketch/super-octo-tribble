@@ -136,6 +136,7 @@ export default function SellPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   disabled={isSubmitting}
+                  className="bg-zinc-100 dark:bg-zinc-800"
                 />
               </div>
               <div className="grid gap-2">
@@ -147,6 +148,7 @@ export default function SellPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   disabled={isSubmitting}
+                   className="bg-zinc-100 dark:bg-zinc-800"
                 />
               </div>
               <div className="grid md:grid-cols-2 gap-6">
@@ -160,6 +162,7 @@ export default function SellPage() {
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     disabled={isSubmitting}
+                    className="bg-zinc-100 dark:bg-zinc-800"
                   />
                 </div>
                 <div className="grid gap-2">
@@ -170,7 +173,7 @@ export default function SellPage() {
                     value={category}
                     disabled={isSubmitting}
                   >
-                    <SelectTrigger id="category">
+                    <SelectTrigger id="category" className="bg-zinc-100 dark:bg-zinc-800">
                       <SelectValue placeholder="Selecciona una categoría" />
                     </SelectTrigger>
                     <SelectContent>
@@ -190,7 +193,7 @@ export default function SellPage() {
                     value={condition}
                     disabled={isSubmitting}
                   >
-                    <SelectTrigger id="condition">
+                    <SelectTrigger id="condition" className="bg-zinc-100 dark:bg-zinc-800">
                       <SelectValue placeholder="Selecciona la condición" />
                     </SelectTrigger>
                     <SelectContent>
@@ -208,12 +211,13 @@ export default function SellPage() {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     disabled={isSubmitting}
+                    className="bg-zinc-100 dark:bg-zinc-800"
                   />
                 </div>
               </div>
               <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" type="button" asChild disabled={isSubmitting}><Link href="/">Cancelar</Link></Button>
-                <Button type="submit" disabled={isSubmitting || userLoading}>
+                <Button type="submit" className="bg-teal-400 hover:bg-teal-500 text-white" disabled={isSubmitting || userLoading}>
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {isSubmitting ? "Publicando..." : "Publicar Anuncio"}
                 </Button>
