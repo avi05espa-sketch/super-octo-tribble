@@ -27,7 +27,7 @@ export default function RootLayout({
         <FirebaseProvider>
           <div className="flex min-h-screen flex-col">
             <div className="flex-1">{children}</div>
-            <Footer />
+            {/* <Footer /> */}
           </div>
           <Toaster />
         </FirebaseProvider>

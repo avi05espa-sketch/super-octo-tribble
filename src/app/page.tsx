@@ -31,6 +31,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 const iconMap: { [key: string]: React.ElementType } = {
   Autos: Car,
@@ -48,8 +49,6 @@ const FilterSection = ({
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // We use a local state to control the slider to avoid too many re-renders,
-    // and only update the URL when the user stops sliding.
     const [localPrice, setLocalPrice] = useState(Number(searchParams.get('maxPrice') || '10000'));
     
     useEffect(() => {
@@ -82,11 +81,11 @@ const FilterSection = ({
 
 
     return (
-      <aside className="w-full md:w-1/4 lg:w-1/5">
+      <aside className="w-full md:w-1/4 lg:w-1/5 bg-card p-6 rounded-lg shadow-sm">
         <h2 className="text-xl font-bold mb-4 hidden md:block">Filtros</h2>
         <Accordion type="multiple" defaultValue={['category', 'condition', 'price']} className="w-full">
           <AccordionItem value="category">
-            <AccordionTrigger className="text-lg font-semibold">Categoría</AccordionTrigger>
+            <AccordionTrigger className="text-md font-semibold">Categoría</AccordionTrigger>
             <AccordionContent>
               <div className="grid gap-3">
                 {categories.map((cat) => (
@@ -96,14 +95,14 @@ const FilterSection = ({
                             checked={selectedCategories.includes(cat.id)}
                             onCheckedChange={() => handleCheckedChange('categories', cat.id)}
                         />
-                        <Label htmlFor={`cat-${cat.id}`} className="cursor-pointer text-base">{cat.name}</Label>
+                        <Label htmlFor={`cat-${cat.id}`} className="cursor-pointer text-sm">{cat.name}</Label>
                     </div>
                 ))}
               </div>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="condition">
-            <AccordionTrigger className="text-lg font-semibold">Condición</AccordionTrigger>
+            <AccordionTrigger className="text-md font-semibold">Condición</AccordionTrigger>
             <AccordionContent>
                <div className="grid gap-3">
                 <div className="flex items-center space-x-2">
@@ -112,7 +111,7 @@ const FilterSection = ({
                     checked={selectedConditions.includes('Nuevo')}
                     onCheckedChange={() => handleCheckedChange('conditions', 'Nuevo')}
                     />
-                  <Label htmlFor="cond-new" className="cursor-pointer text-base">Nuevo</Label>
+                  <Label htmlFor="cond-new" className="cursor-pointer text-sm">Nuevo</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox 
@@ -120,13 +119,13 @@ const FilterSection = ({
                     checked={selectedConditions.includes('Usado')}
                     onCheckedChange={() => handleCheckedChange('conditions', 'Usado')}
                   />
-                  <Label htmlFor="cond-used" className="cursor-pointer text-base">Usado</Label>
+                  <Label htmlFor="cond-used" className="cursor-pointer text-sm">Usado</Label>
                 </div>
               </div>
             </AccordionContent>
           </AccordionItem>
            <AccordionItem value="price">
-            <AccordionTrigger className="text-lg font-semibold">Precio</AccordionTrigger>
+            <AccordionTrigger className="text-md font-semibold">Precio</AccordionTrigger>
             <AccordionContent>
                <div className="space-y-4 pt-2">
                     <Slider
@@ -137,7 +136,7 @@ const FilterSection = ({
                         onValueChange={(values) => setLocalPrice(values[0])}
                         onValueCommit={handlePriceCommit}
                     />
-                    <div className="flex justify-between items-center text-sm text-muted-foreground">
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
                         <span>$0</span>
                          <div className="flex items-center gap-2">
                             <span>hasta</span>
@@ -161,11 +160,13 @@ function ProductGridSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {[...Array(8)].map((_, i) => (
-        <div key={i} className="space-y-2">
-          <Skeleton className="aspect-square w-full rounded-lg" />
-          <Skeleton className="h-5 w-3/4" />
-          <Skeleton className="h-6 w-1/2" />
-          <Skeleton className="h-4 w-1/4" />
+        <div key={i} className="bg-card rounded-lg overflow-hidden border">
+          <Skeleton className="aspect-square w-full" />
+          <div className="p-3">
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-6 w-1/2 mt-1" />
+            <Skeleton className="h-4 w-1/4 mt-2" />
+          </div>
         </div>
       ))}
     </div>
@@ -204,39 +205,40 @@ export default function Home() {
     }
   }, [firestore, searchParams]);
 
-  const scrollToProducts = () => {
-    const productsSection = document.getElementById('recent-products');
-    if (productsSection) {
-      productsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
-    <div className="flex flex-col min-h-screen bg-background font-body">
+    <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="flex-1">
-        <section className="w-full relative bg-primary/10">
-            <div className="container mx-auto px-4 md:px-6 grid md:grid-cols-2 items-center gap-8 py-12 md:py-20">
-                <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                    <h1 className="text-4xl md:text-5xl font-bold leading-tight font-headline text-primary-foreground bg-primary px-2 py-1">Tijuana Marketplace</h1>
-                    <p className="text-xl mt-4 mb-6 text-foreground/80 max-w-md">Tu mercado local para encontrar, comprar y vender artículos de segunda mano de forma segura y rápida.</p>
-                    <div className="flex gap-4">
-                        <Button size="lg" onClick={scrollToProducts}>Ver Anuncios</Button>
-                        <Link href="/auth?tab=register" passHref>
-                          <Button size="lg" variant="outline" className="text-primary border-primary hover:bg-primary hover:text-primary-foreground">Registrarse</Button>
+        <section className="w-full bg-card border-b">
+           <div className="container mx-auto px-4 md:px-6">
+             <div className="relative h-[300px] md:h-[400px] my-8">
+                <div className="container mx-auto px-4 md:px-6 h-full relative z-30">
+                  <div className="flex flex-col justify-center h-full max-w-xl">
+                      <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                        El marketplace local de <span className="text-primary">Tijuana</span>
+                      </h1>
+                      <p className="text-lg md:text-xl mt-4 text-muted-foreground">
+                        Compra, vende y descubre artículos únicos en tu comunidad.
+                      </p>
+                      <Button asChild size="lg" className="mt-8 w-fit">
+                        <Link href="/sell">
+                           <Plus className="mr-2 h-5 w-5" /> Vender ahora
                         </Link>
-                    </div>
+                      </Button>
+                  </div>
                 </div>
-                <div className="relative h-64 md:h-96 w-full">
-                   <Image 
-                        src="https://picsum.photos/seed/marketplace/1200/800"
-                        alt="Mercado local en Tijuana"
+                 <div className="absolute inset-0 z-0">
+                    <Image 
+                        src="https://images.unsplash.com/photo-1513094735237-8f2714d57c13?q=80&w=1935&auto=format&fit=crop"
+                        alt="Shopping background"
                         fill
-                        className="object-cover rounded-lg shadow-xl"
-                        data-ai-hint="local marketplace"
+                        className="object-cover opacity-10"
+                        data-ai-hint="shopping background"
                     />
+                     <div className="absolute inset-0 bg-gradient-to-t from-card via-card to-transparent" />
                 </div>
             </div>
+          </div>
         </section>
 
         <div className="container mx-auto px-4 md:px-6 mt-12 mb-16">
@@ -245,11 +247,11 @@ export default function Home() {
                     categories={categories}
                 />
                 <div id="recent-products" className="w-full md:w-3/4 lg:w-4/5">
-                    <h2 className="text-3xl font-bold tracking-tighter mb-6">Productos Recientes</h2>
+                    <h2 className="text-2xl font-bold tracking-tight mb-6">Anuncios Recientes</h2>
                     {isLoading ? (
                       <ProductGridSkeleton />
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                           {products.map((product) => (
                               <ProductCard key={product.id} product={product} />
                           ))}
@@ -265,16 +267,6 @@ export default function Home() {
             </div>
         </div>
       </main>
-
-      <Link href="/sell" passHref>
-        <Button
-          className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg"
-          size="icon"
-          aria-label="Publicar un Producto"
-        >
-          <Plus className="h-8 w-8" />
-        </Button>
-      </Link>
     </div>
   );
 }

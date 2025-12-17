@@ -15,7 +15,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={`/product/${product.id}`} className="group">
-      <Card className="overflow-hidden h-full flex flex-col transition-all duration-200 hover:shadow-xl border rounded-lg">
+      <Card className="overflow-hidden h-full flex flex-col transition-all duration-200 hover:shadow-xl shadow-md border-0 rounded-lg">
         <div className="relative w-full aspect-square overflow-hidden">
             <Image
                 src={product.images[0]}
@@ -24,12 +24,14 @@ export function ProductCard({ product }: ProductCardProps) {
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                 data-ai-hint={imageHint}
             />
-            <Badge variant={product.condition === 'Nuevo' ? 'default' : 'secondary'} className="absolute top-2 right-2">
-                {product.condition}
-            </Badge>
+            {product.condition === 'Nuevo' && 
+              <Badge variant={'accent'} className="absolute top-2 right-2">
+                  Nuevo
+              </Badge>
+            }
         </div>
         <CardContent className="p-3 flex-grow flex flex-col">
-          <h3 className="font-semibold text-base leading-tight truncate group-hover:text-primary">
+          <h3 className="font-semibold text-sm leading-tight truncate group-hover:text-primary">
             {product.title}
           </h3>
           <div className="flex-grow" />
