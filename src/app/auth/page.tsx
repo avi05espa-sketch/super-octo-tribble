@@ -91,7 +91,7 @@ function LoginForm() {
           <Input
             id="password-login"
             type={showPassword ? "text" : "password"}
-            placeholder="Crea una contraseña"
+            placeholder="Tu contraseña"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
