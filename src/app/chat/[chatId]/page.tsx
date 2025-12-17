@@ -22,6 +22,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 function ChatHeader({ chat, otherUserName }: { chat: Chat | null, otherUserName: string | null }) {
@@ -105,12 +107,22 @@ export default function ChatPage() {
         if (!firestore || !chatId || !currentUser) return;
 
         const fetchChatData = async () => {
-            const chatData = await getChat(firestore, chatId);
-            if (!chatData || !chatData.participants.includes(currentUser.uid)) {
-                return notFound();
+            try {
+                const chatData = await getChat(firestore, chatId);
+                if (!chatData || !chatData.participants.includes(currentUser.uid)) {
+                    // This will be caught by notFound() from Next.js if it's a server component,
+                    // but since it's a client component, we should handle it gracefully.
+                    toast({ variant: 'destructive', title: 'Error', description: 'Chat no encontrado o no tienes permiso para verlo.'})
+                    router.push('/account/messages');
+                    return;
+                }
+                setChat(chatData);
+            } catch (error) {
+                console.error("Error fetching chat data:", error);
+                toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar el chat.'})
+            } finally {
+                setLoading(false);
             }
-            setChat(chatData);
-            setLoading(false);
         };
 
         fetchChatData();
@@ -118,35 +130,40 @@ export default function ChatPage() {
         const messagesRef = collection(firestore, 'chats', chatId, 'messages');
         const q = query(messagesRef, orderBy('timestamp', 'asc'));
 
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const newMessages = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            } as Message));
-            setMessages(newMessages);
-        }, (error) => {
-            console.error("Error fetching messages:", error);
-            toast({ variant: "destructive", title: "Error", description: "No se pudieron cargar los mensajes." });
-        });
+        const unsubscribe = onSnapshot(q, 
+            (querySnapshot) => {
+                const newMessages = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                } as Message));
+                setMessages(newMessages);
+            }, 
+            (error) => {
+                console.error("Error listening to messages:", error);
+                errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: messagesRef.path,
+                    operation: 'list',
+                }));
+                toast({ variant: "destructive", title: "Error de permisos", description: "No se pudieron cargar los mensajes." });
+            }
+        );
 
         return () => unsubscribe();
 
-    }, [firestore, chatId, currentUser, toast]);
+    }, [firestore, chatId, currentUser, toast, router]);
     
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!firestore || !chatId || !currentUser || !newMessage.trim()) return;
-        const currentMessage = newMessage;
+        
+        const textToSend = newMessage.trim();
         setNewMessage("");
 
-        try {
-            await sendMessage(firestore, chatId, currentUser.uid, currentMessage);
-             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        } catch (error) {
-            console.error("Error sending message:", error);
-            toast({ variant: "destructive", title: "Error", description: "No se pudo enviar el mensaje." });
-            setNewMessage(currentMessage);
-        }
+        // The sendMessage function is now fire-and-forget from the UI perspective.
+        // It handles its own errors via the errorEmitter.
+        sendMessage(firestore, chatId, currentUser.uid, textToSend);
+        
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
     if (loading || userLoading) {
@@ -196,7 +213,7 @@ export default function ChatPage() {
                 <form onSubmit={handleSendMessage} className="flex gap-2">
                     <Input 
                         value={newMessage}
-                        onChange={(e) => setNewMessage(e.g.target.value)}
+                        onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Escribe un mensaje..." 
                         className="flex-1"
                         autoComplete="off"

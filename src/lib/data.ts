@@ -17,10 +17,13 @@ import {
   arrayUnion,
   arrayRemove,
   writeBatch,
+  setDoc,
 } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
 import type { Product, Category, User, Chat, Message } from './types';
 import { PlaceHolderImages } from './placeholder-images';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const getImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || '';
 
@@ -181,7 +184,6 @@ export function getCategory(id: string): Category | undefined {
 export async function getOrCreateChat(db: Firestore, userId1: string, userId2: string, productId: string): Promise<string> {
     const chatsRef = collection(db, 'chats');
 
-    // Check if a chat already exists between these two users for this product
     const q = query(chatsRef, 
         where('participants', 'array-contains', userId1),
         where('productId', '==', productId)
@@ -194,7 +196,6 @@ export async function getOrCreateChat(db: Firestore, userId1: string, userId2: s
         return existingChats[0].id;
     }
 
-    // If not, create a new chat
     const [user1Data, user2Data, productData] = await Promise.all([
         getUser(db, userId1),
         getUser(db, userId2),
@@ -205,7 +206,7 @@ export async function getOrCreateChat(db: Firestore, userId1: string, userId2: s
         throw new Error("Could not find user or product to create chat.");
     }
 
-    const newChat: Omit<Chat, 'id'> = {
+    const newChatData: Omit<Chat, 'id'> = {
         participants: [userId1, userId2],
         participantDetails: {
             [userId1]: { name: user1Data.name, avatar: user1Data.profilePicture || '' },
@@ -220,8 +221,17 @@ export async function getOrCreateChat(db: Firestore, userId1: string, userId2: s
           timestamp: serverTimestamp()
         }
     };
+    
+    const docRef = await addDoc(chatsRef, newChatData)
+        .catch((error) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: chatsRef.path,
+                operation: 'create',
+                requestResourceData: newChatData,
+            }));
+            throw error;
+        });
 
-    const docRef = await addDoc(chatsRef, newChat);
     return docRef.id;
 }
 
@@ -272,7 +282,7 @@ export async function getChatsForUser(db: Firestore, userId: string): Promise<Ch
     return chats;
 }
 
-export async function sendMessage(db: Firestore, chatId: string, senderId: string, text: string) {
+export function sendMessage(db: Firestore, chatId: string, senderId: string, text: string) {
     if (!text.trim()) return;
 
     const messagesRef = collection(db, 'chats', chatId, 'messages');
@@ -285,14 +295,28 @@ export async function sendMessage(db: Firestore, chatId: string, senderId: strin
         timestamp: serverTimestamp(),
     };
 
-    await addDoc(messagesRef, newMessage);
+    addDoc(messagesRef, newMessage).catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: messagesRef.path,
+            operation: 'create',
+            requestResourceData: newMessage,
+        }));
+        // We don't re-throw here so the UI doesn't crash on permission errors
+    });
 
-    // Update last message on the chat document
-    await updateDoc(chatRef, {
+    const chatUpdate = {
         lastMessage: {
             text: text.trim(),
             timestamp: serverTimestamp(),
         }
+    };
+
+    updateDoc(chatRef, chatUpdate).catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: chatRef.path,
+            operation: 'update',
+            requestResourceData: chatUpdate,
+        }));
     });
 }
 
@@ -309,15 +333,19 @@ export async function toggleFavorite(db: Firestore, userId: string, productId: s
     const favorites = userDoc.data().favorites || [];
     const isFavorited = favorites.includes(productId);
 
-    if (isFavorited) {
-        await updateDoc(userRef, {
-            favorites: arrayRemove(productId)
-        });
-    } else {
-        await updateDoc(userRef, {
-            favorites: arrayUnion(productId)
-        });
-    }
+    const updateData = isFavorited 
+        ? { favorites: arrayRemove(productId) }
+        : { favorites: arrayUnion(productId) };
+
+    updateDoc(userRef, updateData).catch(error => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'update',
+            requestResourceData: updateData
+        }));
+        // Re-throw so the UI can know the operation failed
+        throw error;
+    });
 
     return !isFavorited;
 }
@@ -330,8 +358,6 @@ export async function getFavoriteProducts(db: Firestore, userId: string): Promis
     
     const favoriteProductIds = user.favorites;
     
-    // Firestore 'in' queries are limited to 30 items per query.
-    // We need to chunk the requests.
     const products: Product[] = [];
     const chunkSize = 30;
 
@@ -342,4 +368,44 @@ export async function getFavoriteProducts(db: Firestore, userId: string): Promis
     }
 
     return products;
+}
+
+// New function to add a product, with error handling
+export function addProduct(db: Firestore, productData: Omit<Product, 'id' | 'createdAt'>) {
+    const productsRef = collection(db, "products");
+    const newProductData = {
+        ...productData,
+        createdAt: serverTimestamp(),
+    };
+    
+    return addDoc(productsRef, newProductData)
+        .catch((error) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: productsRef.path,
+                operation: 'create',
+                requestResourceData: newProductData,
+            }));
+            // Re-throw so the UI can handle the submission failure
+            throw error;
+        });
+}
+
+// New function to create a user document, with error handling
+export function createUserProfile(db: Firestore, userId: string, userData: Omit<User, 'id' | 'createdAt'>) {
+    const userRef = doc(db, 'users', userId);
+    const newUserProfile = {
+        ...userData,
+        createdAt: serverTimestamp(),
+    };
+    
+    // Use setDoc with merge:true to avoid overwriting if it somehow already exists
+    return setDoc(userRef, newUserProfile, { merge: true })
+        .catch(error => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: userRef.path,
+                operation: 'create',
+                requestResourceData: newUserProfile,
+            }));
+            throw error;
+        });
 }

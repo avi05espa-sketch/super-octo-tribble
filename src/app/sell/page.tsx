@@ -1,9 +1,9 @@
+
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useUser, useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,16 +13,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getCategories } from "@/lib/data";
+import { getCategories, addProduct } from "@/lib/data";
 import { Loader2 } from "lucide-react";
+import type { Product } from "@/lib/types";
 
 export default function SellPage() {
   const categories = getCategories();
-  const { app } = useFirebase();
+  const { firestore } = useFirebase();
   const { user, loading: userLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  const db = getFirestore(app);
   
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -58,10 +58,9 @@ export default function SellPage() {
     
     try {
       // For now, we are not handling image uploads, just storing mock URLs.
-      // This will be replaced with actual image upload logic later.
       const imageUrls = Array.from(images).map((file, index) => `https://picsum.photos/seed/${user.uid}-${Date.now()}-${index}/600/400`);
 
-      const docRef = await addDoc(collection(db, "products"), {
+      const productData: Omit<Product, 'id' | 'createdAt'> = {
         title,
         description,
         price: Number(price),
@@ -70,8 +69,9 @@ export default function SellPage() {
         location,
         sellerId: user.uid,
         images: imageUrls,
-        createdAt: serverTimestamp(),
-      });
+      };
+
+      const docRef = await addProduct(firestore, productData);
 
       toast({
         title: "¡Producto publicado!",
@@ -82,10 +82,12 @@ export default function SellPage() {
 
     } catch (error) {
       console.error("Error publishing product:", error);
+      // The specific error toast is now handled by the error emitter,
+      // but we can show a generic one here as a fallback.
       toast({
         variant: "destructive",
         title: "Error al publicar",
-        description: "Hubo un problema al guardar tu producto. Inténtalo de nuevo.",
+        description: "Hubo un problema al guardar tu producto. Revisa los permisos e inténtalo de nuevo.",
       });
     } finally {
       setIsSubmitting(false);

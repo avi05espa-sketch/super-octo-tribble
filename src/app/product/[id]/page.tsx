@@ -24,6 +24,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { FirebaseError } from 'firebase/app';
 
 function ProductSkeleton() {
   return (
@@ -135,10 +136,11 @@ export default function ProductPage() {
       router.push(`/chat/${chatId}`);
     } catch (error) {
       console.error("Error creating or getting chat:", error);
+      // The specific error is now handled by the emitter, but we can show a fallback.
       toast({
         variant: "destructive",
         title: "Error",
-        description: "No se pudo iniciar el chat. Inténtalo de nuevo."
+        description: "No se pudo iniciar el chat. Revisa tus permisos e inténtalo de nuevo."
       });
       setIsChatting(false);
     }
@@ -169,7 +171,7 @@ export default function ProductPage() {
            toast({
                 variant: "destructive",
                 title: "Error",
-                description: "No se pudo actualizar tus favoritos."
+                description: "No se pudo actualizar tus favoritos. Revisa tus permisos."
             });
       } finally {
         setIsFavoriteLoading(false);

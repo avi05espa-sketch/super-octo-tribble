@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -16,6 +17,7 @@ import { FirebaseError } from "firebase/app";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, EyeOff, MapPin, UserPlus } from "lucide-react";
+import { createUserProfile } from "@/lib/data";
 
 const TIJUANA_COORDS = { latitude: 32.5149, longitude: -117.0382 };
 const MAX_DISTANCE_KM = 50; // 50km radius for a wider range
@@ -191,14 +193,17 @@ function RegisterForm() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       await updateProfile(user, { displayName: fullName });
-      await setDoc(doc(db, "users", user.uid), {
+      
+      const userProfileData = {
         uid: user.uid,
         name: fullName,
-        email: user.email,
+        email: user.email!,
         profilePicture: user.photoURL || `https://picsum.photos/seed/${user.uid}/400/400`,
-        createdAt: serverTimestamp(),
         location: "Tijuana",
-      });
+      };
+
+      await createUserProfile(db, user.uid, userProfileData);
+
       toast({ title: "¡Cuenta creada!", description: "Ahora puedes iniciar sesión." });
       router.push("/");
     } catch (error) {
@@ -300,5 +305,3 @@ export default function AuthPage() {
     </div>
   );
 }
-
-    

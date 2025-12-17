@@ -1,3 +1,4 @@
+
 'use client';
 import {
   createContext,
@@ -21,6 +22,7 @@ import {
   getFirestore,
 } from 'firebase/firestore';
 import { app } from './config';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 interface FirebaseContextType {
   app: FirebaseApp;
@@ -77,6 +79,7 @@ export function FirebaseProvider({ children }: { children: ReactNode }) {
   return (
     <FirebaseContext.Provider value={value}>
       {children}
+      {process.env.NODE_ENV === 'development' && <FirebaseErrorListener />}
     </FirebaseContext.Provider>
   );
 }
