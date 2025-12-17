@@ -48,6 +48,15 @@ const FilterSection = ({
     const router = useRouter();
     const searchParams = useSearchParams();
 
+    // We use a local state to control the slider to avoid too many re-renders,
+    // and only update the URL when the user stops sliding.
+    const [localPrice, setLocalPrice] = useState(Number(searchParams.get('maxPrice') || '10000'));
+    
+    useEffect(() => {
+        setLocalPrice(Number(searchParams.get('maxPrice') || '10000'));
+    }, [searchParams]);
+
+
     const handleCheckedChange = (type: 'categories' | 'conditions', value: string) => {
         const params = new URLSearchParams(searchParams.toString());
         const currentValues = params.getAll(type);
@@ -59,28 +68,27 @@ const FilterSection = ({
         } else {
             params.append(type, value);
         }
-        router.push(`/?${params.toString()}`);
+        router.push(`/?${params.toString()}`, { scroll: false });
     };
     
-    const handlePriceChange = (values: number[]) => {
+    const handlePriceCommit = (values: number[]) => {
         const params = new URLSearchParams(searchParams.toString());
         params.set('maxPrice', values[0].toString());
-        router.push(`/?${params.toString()}`);
+        router.push(`/?${params.toString()}`, { scroll: false });
     }
 
     const selectedCategories = searchParams.getAll('categories');
     const selectedConditions = searchParams.getAll('conditions');
-    const maxPrice = Number(searchParams.get('maxPrice') || '10000');
 
 
     return (
-      <aside className="w-full md:w-1/4 lg:w-1/5 p-4">
-        <h2 className="text-xl font-bold mb-4">Filtros</h2>
+      <aside className="w-full md:w-1/4 lg:w-1/5">
+        <h2 className="text-xl font-bold mb-4 hidden md:block">Filtros</h2>
         <Accordion type="multiple" defaultValue={['category', 'condition', 'price']} className="w-full">
           <AccordionItem value="category">
-            <AccordionTrigger>Categoría</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-semibold">Categoría</AccordionTrigger>
             <AccordionContent>
-              <div className="grid gap-2">
+              <div className="grid gap-3">
                 {categories.map((cat) => (
                      <div key={cat.id} className="flex items-center space-x-2">
                         <Checkbox 
@@ -88,23 +96,23 @@ const FilterSection = ({
                             checked={selectedCategories.includes(cat.id)}
                             onCheckedChange={() => handleCheckedChange('categories', cat.id)}
                         />
-                        <Label htmlFor={`cat-${cat.id}`}>{cat.name}</Label>
+                        <Label htmlFor={`cat-${cat.id}`} className="cursor-pointer text-base">{cat.name}</Label>
                     </div>
                 ))}
               </div>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="condition">
-            <AccordionTrigger>Condición</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-semibold">Condición</AccordionTrigger>
             <AccordionContent>
-               <div className="grid gap-2">
+               <div className="grid gap-3">
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id="cond-new" 
                     checked={selectedConditions.includes('Nuevo')}
                     onCheckedChange={() => handleCheckedChange('conditions', 'Nuevo')}
                     />
-                  <Label htmlFor="cond-new">Nuevo</Label>
+                  <Label htmlFor="cond-new" className="cursor-pointer text-base">Nuevo</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox 
@@ -112,20 +120,22 @@ const FilterSection = ({
                     checked={selectedConditions.includes('Usado')}
                     onCheckedChange={() => handleCheckedChange('conditions', 'Usado')}
                   />
-                  <Label htmlFor="cond-used">Usado</Label>
+                  <Label htmlFor="cond-used" className="cursor-pointer text-base">Usado</Label>
                 </div>
               </div>
             </AccordionContent>
           </AccordionItem>
            <AccordionItem value="price">
-            <AccordionTrigger>Precio</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-semibold">Precio</AccordionTrigger>
             <AccordionContent>
-               <div className="space-y-4">
+               <div className="space-y-4 pt-2">
                     <Slider
-                        defaultValue={[maxPrice]}
+                        defaultValue={[10000]}
+                        value={[localPrice]}
                         max={10000}
                         step={100}
-                        onValueCommit={handlePriceChange}
+                        onValueChange={(values) => setLocalPrice(values[0])}
+                        onValueCommit={handlePriceCommit}
                     />
                     <div className="flex justify-between items-center text-sm text-muted-foreground">
                         <span>$0</span>
@@ -133,7 +143,7 @@ const FilterSection = ({
                             <span>hasta</span>
                             <Input 
                                 type="text"
-                                value={`$${maxPrice.toLocaleString()}`}
+                                value={`$${localPrice.toLocaleString()}`}
                                 readOnly
                                 className="w-24 h-8 text-center"
                             />
@@ -246,7 +256,7 @@ export default function Home() {
                       </div>
                     )}
                      { !isLoading && products.length === 0 && (
-                        <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg text-center">
+                        <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg text-center p-4">
                             <h3 className="text-xl font-semibold">No se encontraron productos</h3>
                             <p className="text-muted-foreground mt-2">Intenta ajustar tus filtros o tu búsqueda.</p>
                         </div>

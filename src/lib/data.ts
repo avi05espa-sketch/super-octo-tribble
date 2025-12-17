@@ -52,8 +52,10 @@ export async function getProducts(db: Firestore, {
     
     let filters = [];
 
-    if (ids) {
-        if (ids.length === 0) return []; // No IDs, no products
+    if (ids && ids.length > 0) {
+        // Firestore 'in' queries are limited to 30 items.
+        // If we have more, we need to do multiple queries.
+        // For this app, we'll assume we won't hit that limit in most cases.
         filters.push(where('__name__', 'in', ids));
     }
     if (sellerId) {
@@ -65,10 +67,10 @@ export async function getProducts(db: Firestore, {
     if (conditions && conditions.length > 0) {
         filters.push(where("condition", "in", conditions));
     }
-    if (minPrice) {
+    if (minPrice !== undefined && minPrice > 0) {
         filters.push(where("price", ">=", Number(minPrice)));
     }
-    if (maxPrice) {
+    if (maxPrice !== undefined) {
         filters.push(where("price", "<=", Number(maxPrice)));
     }
     
@@ -78,8 +80,6 @@ export async function getProducts(db: Firestore, {
         // Firestore doesn't support full-text search on multiple fields well.
         // A robust solution uses a search service like Algolia or Elasticsearch.
         // We do a simple "startsWith" on the title.
-        // When a search term is present, we ignore other filters for simplicity,
-        // unless they are also provided by the AI.
         const searchFilters = [
             ...filters,
             where('title', '>=', searchTerm),
@@ -89,10 +89,9 @@ export async function getProducts(db: Firestore, {
     } else if (filters.length > 0) {
         q = query(productsRef, and(...filters), orderBy("createdAt", "desc"));
     } else {
-        q = query(productsRef, orderBy("createdAt", "desc"));
+        q = query(productsRef, orderBy("createdAt", "desc"), limit(20));
     }
     
-
     const querySnapshot = await getDocs(q);
     const products = querySnapshot.docs.map(doc => {
       const data = doc.data();
@@ -357,12 +356,14 @@ export async function getFavoriteProducts(db: Firestore, userId: string): Promis
     const favoriteProductIds = user.favorites;
     
     const products: Product[] = [];
-    const chunkSize = 30;
+    const chunkSize = 30; // Firestore 'in' query limit
 
     for (let i = 0; i < favoriteProductIds.length; i += chunkSize) {
         const chunk = favoriteProductIds.slice(i, i + chunkSize);
-        const chunkProducts = await getProducts(db, { ids: chunk });
-        products.push(...chunkProducts);
+        if (chunk.length > 0) {
+            const chunkProducts = await getProducts(db, { ids: chunk });
+            products.push(...chunkProducts);
+        }
     }
 
     return products;
@@ -409,3 +410,5 @@ export function createUserProfile(db: Firestore, userId: string, userData: Omit<
             throw error;
         });
 }
+
+    
