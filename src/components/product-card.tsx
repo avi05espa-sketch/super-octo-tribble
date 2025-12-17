@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Product } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Badge } from './ui/badge';
 
 interface ProductCardProps {
   product: Product;
@@ -14,8 +15,8 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={`/product/${product.id}`} className="group">
-      <Card className="overflow-hidden h-full flex flex-col transition-all duration-200 hover:shadow-xl">
-        <div className="relative w-full aspect-[4/3] overflow-hidden">
+      <Card className="overflow-hidden h-full flex flex-col transition-all duration-200 hover:shadow-xl border rounded-lg">
+        <div className="relative w-full aspect-square overflow-hidden">
             <Image
                 src={product.images[0]}
                 alt={product.title}
@@ -23,14 +24,17 @@ export function ProductCard({ product }: ProductCardProps) {
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
                 data-ai-hint={imageHint}
             />
+            <Badge variant={product.condition === 'Nuevo' ? 'default' : 'secondary'} className="absolute top-2 right-2 bg-red-500 text-white">
+                {product.condition}
+            </Badge>
         </div>
-        <CardContent className="p-4 flex-grow flex flex-col">
-          <h3 className="font-semibold text-lg leading-tight truncate font-headline group-hover:text-primary">
+        <CardContent className="p-3 flex-grow flex flex-col">
+          <h3 className="font-semibold text-base leading-tight truncate group-hover:text-primary">
             {product.title}
           </h3>
-          <p className="text-sm text-muted-foreground mt-1">{product.location}</p>
           <div className="flex-grow" />
-          <p className="font-bold text-xl mt-2">${product.price.toLocaleString('es-MX')}</p>
+          <p className="font-bold text-lg mt-1">${product.price.toLocaleString('es-MX')}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{product.location}</p>
         </CardContent>
       </Card>
     </Link>

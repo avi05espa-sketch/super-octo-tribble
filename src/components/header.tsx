@@ -1,9 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Search, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/logo';
 import { MobileSheet } from './mobile-sheet';
 import { useUser } from '@/firebase';
@@ -28,9 +26,14 @@ function UserNav() {
 
     if (!user) {
         return (
-             <Button asChild>
-                <Link href="/auth">Iniciar Sesión</Link>
-            </Button>
+             <div className="flex items-center gap-2">
+                <Button variant="ghost" asChild>
+                    <Link href="/auth">Iniciar Sesión</Link>
+                </Button>
+                <Button asChild className="bg-red-500 hover:bg-red-600">
+                    <Link href="/auth">Crear Cuenta</Link>
+                </Button>
+            </div>
         )
     }
 
@@ -84,27 +87,7 @@ export function Header() {
           <Logo />
         </div>
 
-        <div className="hidden md:flex flex-1 max-w-md mx-4">
-          <form action="/search" className="w-full relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="search"
-              name="q"
-              placeholder="Buscar en Tijuana Shop..."
-              className="w-full pl-10 bg-secondary"
-            />
-          </form>
-        </div>
-
         <div className="flex items-center gap-2">
-           <div className="md:hidden">
-             <Button variant="ghost" size="icon" asChild>
-                <Link href="/search"><Search className="h-5 w-5"/></Link>
-             </Button>
-           </div>
-          <Button variant="outline" asChild className="hidden sm:flex">
-            <Link href="/sell"><PlusCircle className="mr-2 h-4 w-4"/>Vender</Link>
-          </Button>
           <UserNav />
         </div>
       </div>
