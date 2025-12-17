@@ -409,5 +409,3 @@ export function createUserProfile(db: Firestore, userId: string, userData: Omit<
             throw error;
         });
 }
-
-    
