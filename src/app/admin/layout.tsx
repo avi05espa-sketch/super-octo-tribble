@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useFirebase, useUser } from '@/firebase';
 import { getUser } from '@/lib/data';
-import { Loader2, Home, Settings, Shield, PanelLeft } from 'lucide-react';
+import { Loader2, Home, Settings, Shield, PanelLeft, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ function AdminNav() {
     const pathname = usePathname();
     const navItems = [
         { href: '/admin', label: 'Dashboard', icon: Home },
+        { href: '/admin/users', label: 'Usuarios', icon: Users },
         { href: '/admin/settings', label: 'Ajustes', icon: Settings },
     ];
 
@@ -30,7 +31,8 @@ function AdminNav() {
                     href={item.href}
                     className={cn(
                         "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                        pathname === item.href && "bg-muted text-primary"
+                        pathname.startsWith(item.href) && item.href !== '/' && "bg-muted text-primary",
+                        pathname === '/' && item.href === '/' && "bg-muted text-primary"
                     )}
                 >
                     <item.icon className="h-4 w-4" />

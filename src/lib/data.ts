@@ -407,6 +407,32 @@ export function incrementProductViewCount(db: Firestore, productId: string) {
 
 // --- User Functions ---
 
+export async function getAllUsers(db: Firestore): Promise<User[]> {
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    } as User));
+}
+
+export async function updateUserRole(db: Firestore, userId: string, role: 'user' | 'admin'): Promise<void> {
+    const userRef = doc(db, 'users', userId);
+    
+    const roleUpdate = { role };
+
+    return updateDoc(userRef, roleUpdate).catch(error => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'update',
+            requestResourceData: roleUpdate,
+        } satisfies SecurityRuleContext));
+        throw error;
+    });
+}
+
+
 export function createUserProfile(db: Firestore, userId: string, userData: Omit<User, 'id' | 'createdAt' | 'uid'>) {
     const userRef = doc(db, 'users', userId);
     const newUserProfile = {
