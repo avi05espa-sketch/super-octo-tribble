@@ -186,28 +186,37 @@ function LoginForm() {
 
 // FIX: Isolate Checkbox state management to prevent flushSync error
 function TermsCheckbox({ onCheckedChange }: { onCheckedChange: (checked: boolean) => void }) {
-  const [checked, setChecked] = useState(false);
-
-  const handleCheckedChange = (newChecked: boolean | 'indeterminate') => {
-    const isChecked = newChecked as boolean;
-    setChecked(isChecked);
-    onCheckedChange(isChecked);
+  // This component now correctly isolates the state update.
+  const handleCheckedChange = (checked: boolean | 'indeterminate') => {
+    onCheckedChange(checked as boolean);
   };
-  
+
   return (
     <div className="flex items-start space-x-2 pt-2">
-        <Checkbox id="terms" checked={checked} onCheckedChange={handleCheckedChange} />
-        <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground leading-snug">
+      <Checkbox
+        id="terms"
+        onCheckedChange={handleCheckedChange}
+      />
+      <Label
+        htmlFor="terms"
+        className="text-sm font-normal text-muted-foreground leading-snug"
+      >
         Acepto los{" "}
-        <Link href="/terms" className="underline text-primary hover:text-primary/80">
-            Términos y Condiciones
+        <Link
+          href="/terms"
+          className="underline text-primary hover:text-primary/80"
+        >
+          Términos y Condiciones
         </Link>{" "}
         y la{" "}
-        <Link href="/privacy" className="underline text-primary hover:text-primary/80">
-            Política de Privacidad
+        <Link
+          href="/privacy"
+          className="underline text-primary hover:text-primary/80"
+        >
+          Política de Privacidad
         </Link>
         .
-        </Label>
+      </Label>
     </div>
   );
 }
