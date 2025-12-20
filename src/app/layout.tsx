@@ -22,12 +22,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <body className={`${ptSans.variable} font-body antialiased`}>
         <FirebaseProvider>
           <div className="flex min-h-screen flex-col">
             <div className="flex-1">{children}</div>
-            {/* <Footer /> */}
+            <Footer />
           </div>
           <Toaster />
         </FirebaseProvider>

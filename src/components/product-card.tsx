@@ -25,7 +25,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 data-ai-hint={imageHint}
             />
             {product.condition === 'Nuevo' && 
-              <Badge variant={'accent'} className="absolute top-2 right-2">
+              <Badge variant={'default'} className="absolute top-2 right-2">
                   Nuevo
               </Badge>
             }
