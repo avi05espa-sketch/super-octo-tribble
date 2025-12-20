@@ -21,9 +21,12 @@ export function Logo() {
         {/* Rosa (Accent) */}
         <path d="M16 24L24 32H32L24 24H16Z" fill="hsl(var(--accent))" />
       </svg>
-      <span className="text-xl font-bold text-foreground hidden sm:inline-block">
-        Tijuana<span className="text-primary">Shop</span>
-      </span>
+      <div className="hidden sm:flex flex-col">
+        <span className="text-xl font-bold text-foreground leading-none">
+          Tijuana<span className="text-primary">Shop</span>
+        </span>
+        <span className="text-xs text-muted-foreground">Tu mercado local</span>
+      </div>
     </Link>
   );
 }
