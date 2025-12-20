@@ -287,6 +287,10 @@ function RegisterForm() {
       setIsLoading(false);
     }
   };
+  
+  const handleTermsCheckedChange = (checked: boolean | 'indeterminate') => {
+    setTermsAccepted(checked as boolean);
+  };
 
   return (
     <div className="grid gap-4">
@@ -323,7 +327,7 @@ function RegisterForm() {
                 <p className="text-xs text-muted-foreground">Debes verificar que estás en Tijuana para crear una cuenta.</p>
             </div>
             <div className="flex items-start space-x-2 pt-2">
-                <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} />
+                <Checkbox id="terms" checked={termsAccepted} onCheckedChange={handleTermsCheckedChange} />
                 <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground leading-snug">
                 Acepto los{" "}
                 <Link href="/terms" className="underline text-primary hover:text-primary/80">
