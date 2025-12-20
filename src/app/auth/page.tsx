@@ -64,7 +64,7 @@ function GoogleSignInButton({ onLoading }: { onLoading: (isLoading: boolean) => 
                     favorites: [],
                 };
                 await createUserProfile(db, user.uid, userProfileData);
-                toast({ title: "¡Bienvenido a Avi Espa!", description: "Tu cuenta ha sido creada exitosamente." });
+                toast({ title: "¡Bienvenido a Tijuana Shop!", description: "Tu cuenta ha sido creada exitosamente." });
             } else {
                 toast({ title: `¡Bienvenido de nuevo, ${user.displayName}!` });
             }
@@ -171,7 +171,7 @@ function LoginForm() {
                 ¿Olvidaste tu contraseña?
                 </Link>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading} variant="success">
+            <Button type="submit" className="w-full" disabled={isLoading} variant="teal">
                 {isLoading ? "Iniciando..." : "Iniciar Sesión"}
             </Button>
         </form>
@@ -183,6 +183,35 @@ function LoginForm() {
     </div>
   );
 }
+
+// FIX: Isolate Checkbox state management to prevent flushSync error
+function TermsCheckbox({ onCheckedChange }: { onCheckedChange: (checked: boolean) => void }) {
+  const [checked, setChecked] = useState(false);
+
+  const handleCheckedChange = (newChecked: boolean | 'indeterminate') => {
+    const isChecked = newChecked as boolean;
+    setChecked(isChecked);
+    onCheckedChange(isChecked);
+  };
+  
+  return (
+    <div className="flex items-start space-x-2 pt-2">
+        <Checkbox id="terms" checked={checked} onCheckedChange={handleCheckedChange} />
+        <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground leading-snug">
+        Acepto los{" "}
+        <Link href="/terms" className="underline text-primary hover:text-primary/80">
+            Términos y Condiciones
+        </Link>{" "}
+        y la{" "}
+        <Link href="/privacy" className="underline text-primary hover:text-primary/80">
+            Política de Privacidad
+        </Link>
+        .
+        </Label>
+    </div>
+  );
+}
+
 
 function RegisterForm() {
   const { app } = useFirebase();
@@ -269,7 +298,6 @@ function RegisterForm() {
         favorites: [],
       };
       
-      // This function now handles its own permission errors via the emitter.
       await createUserProfile(db, user.uid, userProfileData);
 
       toast({ title: "¡Cuenta creada!", description: "Tu cuenta ha sido creada exitosamente." });
@@ -286,10 +314,6 @@ function RegisterForm() {
     } finally {
       setIsLoading(false);
     }
-  };
-  
-  const handleTermsCheckedChange = (checked: boolean | 'indeterminate') => {
-    setTermsAccepted(checked as boolean);
   };
 
   return (
@@ -326,21 +350,10 @@ function RegisterForm() {
                 </div>
                 <p className="text-xs text-muted-foreground">Debes verificar que estás en Tijuana para crear una cuenta.</p>
             </div>
-            <div className="flex items-start space-x-2 pt-2">
-                <Checkbox id="terms" checked={termsAccepted} onCheckedChange={handleTermsCheckedChange} />
-                <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground leading-snug">
-                Acepto los{" "}
-                <Link href="/terms" className="underline text-primary hover:text-primary/80">
-                    Términos y Condiciones
-                </Link>{" "}
-                y la{" "}
-                <Link href="/privacy" className="underline text-primary hover:text-primary/80">
-                    Política de Privacidad
-                </Link>
-                .
-                </Label>
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading || !termsAccepted || !locationVerified} variant="accent">
+            
+            <TermsCheckbox onCheckedChange={setTermsAccepted} />
+
+            <Button type="submit" className="w-full" disabled={isLoading || !termsAccepted || !locationVerified} variant="teal">
                 <UserPlus className="mr-2 h-4 w-4" />
                 {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
             </Button>
@@ -359,16 +372,16 @@ export default function AuthPage() {
     const defaultTab = searchParams.get('tab') || 'login';
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-50 dark:bg-zinc-900 p-4">
-        <div className="mb-8">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-100 dark:bg-zinc-900 p-4">
+        <div className="mb-6">
             <Logo />
         </div>
       <Tabs defaultValue={defaultTab} className="w-full max-w-md">
-        <TabsList className="grid w-full grid-cols-2 bg-zinc-200 dark:bg-zinc-800">
-          <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-          <TabsTrigger value="register">Crear Cuenta</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 bg-zinc-200 dark:bg-zinc-800 h-12 rounded-t-lg rounded-b-none">
+          <TabsTrigger value="login" className="rounded-t-lg rounded-b-none h-full text-base">Iniciar Sesión</TabsTrigger>
+          <TabsTrigger value="register" className="rounded-t-lg rounded-b-none h-full text-base">Crear Cuenta</TabsTrigger>
         </TabsList>
-        <Card className="mt-4 shadow-md">
+        <Card className="mt-0 shadow-lg rounded-t-none">
              <TabsContent value="login">
                  <CardContent className="pt-6">
                     <LoginForm />
