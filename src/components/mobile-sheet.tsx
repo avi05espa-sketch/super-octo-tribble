@@ -62,14 +62,11 @@ export function MobileSheet() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="flex flex-col w-72 sm:w-80 p-0">
-        <SheetHeader>
+        <SheetHeader className="p-4 border-b">
             <SheetTitle className="sr-only">Menú Principal</SheetTitle>
             <SheetDescription className="sr-only">Navegación principal de la aplicación y opciones de cuenta.</SheetDescription>
+            <Logo />
         </SheetHeader>
-        <div className="p-4">
-          <Logo />
-        </div>
-        <Separator />
         <nav className="flex-1 px-2 py-4 space-y-1">
           {menuItems.filter(item => !item.requiresAuth || !!user).map(({ href, label, icon: Icon }) => (
             <SheetClose asChild key={label}>

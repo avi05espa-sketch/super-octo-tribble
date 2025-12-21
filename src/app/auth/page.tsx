@@ -76,7 +76,11 @@ function GoogleSignInButton({ onLoading }: { onLoading: (isLoading: boolean) => 
             console.error(error);
             let description = "Ocurrió un error inesperado durante el inicio de sesión con Google.";
             if (error instanceof FirebaseError) {
-                description = "No se pudo completar el inicio de sesión con Google. Inténtalo de nuevo.";
+                if (error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
+                  description = "La clave de API de Firebase no es válida. Por favor, revisa la configuración.";
+                } else {
+                  description = "No se pudo completar el inicio de sesión con Google. Inténtalo de nuevo.";
+                }
             }
             toast({ variant: "destructive", title: "Error de inicio de sesión", description });
         } finally {
@@ -117,6 +121,8 @@ function LoginForm() {
       if (error instanceof FirebaseError) {
         if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
           description = "Correo o contraseña incorrectos.";
+        } else if (error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
+            description = "La clave de API de Firebase no es válida. Por favor, revisa la configuración.";
         }
       }
       toast({
@@ -283,6 +289,8 @@ function RegisterForm() {
       if (error instanceof FirebaseError) {
         if (error.code === 'auth/email-already-in-use') {
           description = "Este correo electrónico ya está en uso.";
+        } else if (error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
+           description = "La clave de API de Firebase no es válida. Por favor, revisa la configuración.";
         }
       }
       toast({ variant: "destructive", title: "Error en el registro", description });
@@ -329,12 +337,7 @@ function RegisterForm() {
             <div className="flex items-start space-x-2 pt-2">
                 <Checkbox
                     id="terms"
-                    checked={termsAccepted}
-                    onCheckedChange={(checkedState) => {
-                         if (typeof checkedState === 'boolean') {
-                            setTermsAccepted(checkedState);
-                        }
-                    }}
+                    onCheckedChange={(checked) => setTermsAccepted(Boolean(checked))}
                 />
                 <Label
                     htmlFor="terms"
