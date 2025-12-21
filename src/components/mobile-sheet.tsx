@@ -5,6 +5,9 @@ import {
   SheetContent,
   SheetTrigger,
   SheetClose,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import {
@@ -59,6 +62,10 @@ export function MobileSheet() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="flex flex-col w-72 sm:w-80 p-0">
+        <SheetHeader>
+            <SheetTitle className="sr-only">Menú Principal</SheetTitle>
+            <SheetDescription className="sr-only">Navegación principal de la aplicación y opciones de cuenta.</SheetDescription>
+        </SheetHeader>
         <div className="p-4">
           <Logo />
         </div>

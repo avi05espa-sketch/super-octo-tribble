@@ -20,6 +20,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -62,7 +63,10 @@ function ChatHeader({ chat, otherUserName }: { chat: Chat | null, otherUserName:
                 </SheetTrigger>
                 <SheetContent>
                     <SheetHeader>
-                    <SheetTitle>Detalles del producto</SheetTitle>
+                        <SheetTitle>Detalles del producto</SheetTitle>
+                        <SheetDescription className="sr-only">
+                            Información sobre el producto {chat.productTitle} del cual trata esta conversación.
+                        </SheetDescription>
                     </SheetHeader>
                     <div className="py-4 space-y-4">
                         <Link href={`/product/${chat.productId}`} className="block group">
@@ -226,5 +230,3 @@ export default function ChatPage() {
         </div>
     );
 }
-
-    
