@@ -184,44 +184,6 @@ function LoginForm() {
   );
 }
 
-// FIX: Isolate Checkbox state management to prevent flushSync error
-function TermsCheckbox({ onCheckedChange }: { onCheckedChange: (checked: boolean) => void }) {
-  // This component now correctly isolates the state update.
-  const handleCheckedChange = (checked: boolean | 'indeterminate') => {
-    onCheckedChange(checked as boolean);
-  };
-
-  return (
-    <div className="flex items-start space-x-2 pt-2">
-      <Checkbox
-        id="terms"
-        onCheckedChange={handleCheckedChange}
-      />
-      <Label
-        htmlFor="terms"
-        className="text-sm font-normal text-muted-foreground leading-snug"
-      >
-        Acepto los{" "}
-        <Link
-          href="/terms"
-          className="underline text-primary hover:text-primary/80"
-        >
-          Términos y Condiciones
-        </Link>{" "}
-        y la{" "}
-        <Link
-          href="/privacy"
-          className="underline text-primary hover:text-primary/80"
-        >
-          Política de Privacidad
-        </Link>
-        .
-      </Label>
-    </div>
-  );
-}
-
-
 function RegisterForm() {
   const { app } = useFirebase();
   const auth = getAuth(app);
@@ -360,7 +322,34 @@ function RegisterForm() {
                 <p className="text-xs text-muted-foreground">Debes verificar que estás en Tijuana para crear una cuenta.</p>
             </div>
             
-            <TermsCheckbox onCheckedChange={setTermsAccepted} />
+            <div className="flex items-start space-x-2 pt-2">
+                <Checkbox
+                    id="terms"
+                    checked={termsAccepted}
+                    onCheckedChange={(checked: boolean | 'indeterminate') => setTermsAccepted(checked as boolean)}
+                />
+                <Label
+                    htmlFor="terms"
+                    className="text-sm font-normal text-muted-foreground leading-snug"
+                >
+                    Acepto los{" "}
+                    <Link
+                    href="/terms"
+                    className="underline text-primary hover:text-primary/80"
+                    >
+                    Términos y Condiciones
+                    </Link>{" "}
+                    y la{" "}
+                    <Link
+                    href="/privacy"
+                    className="underline text-primary hover:text-primary/80"
+                    >
+                    Política de Privacidad
+                    </Link>
+                    .
+                </Label>
+            </div>
+
 
             <Button type="submit" className="w-full" disabled={isLoading || !termsAccepted || !locationVerified} variant="teal">
                 <UserPlus className="mr-2 h-4 w-4" />
