@@ -3,11 +3,10 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/logo";
@@ -15,13 +14,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from "@/firebase";
 import { FirebaseError } from "firebase/app";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, EyeOff, MapPin, UserPlus } from "lucide-react";
 import { createUserProfile, getUser } from "@/lib/data";
 import { Separator } from "@/components/ui/separator";
 
 const TIJUANA_COORDS = { latitude: 32.5149, longitude: -117.0382 };
-const MAX_DISTANCE_KM = 50; // 50km radius for a wider range
+const MAX_DISTANCE_KM = 50; 
 
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371;
@@ -49,11 +47,9 @@ function GoogleSignInButton({ onLoading }: { onLoading: (isLoading: boolean) => 
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
-            // Check if user profile already exists
             const userProfile = await getUser(db, user.uid);
             
             if (!userProfile) {
-                // New user, create a profile
                  const userProfileData = {
                     uid: user.uid,
                     name: user.displayName || "Usuario Anónimo",
@@ -89,12 +85,16 @@ function GoogleSignInButton({ onLoading }: { onLoading: (isLoading: boolean) => 
     };
 
     return (
-        <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} type="button">
-            <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+        <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            className="w-full flex items-center justify-center bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+        >
+            <svg className="mr-2 h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
                 <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 23.4 172.9 61.9l-76.2 64.5C308.6 102.3 279.2 88 248 88c-86.5 0-156 70.2-156 156s69.5 156 156 156c95.5 0 134.3-74.8 140.8-109.9H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path>
             </svg>
             Continuar con Google
-        </Button>
+        </button>
     );
 }
 
@@ -136,11 +136,14 @@ function LoginForm() {
   };
 
   return (
-    <div className="grid gap-4">
-        <p className="text-sm text-muted-foreground">Ingresa tus credenciales para acceder a tu cuenta.</p>
-        <form onSubmit={handleLogin} className="grid gap-4">
-            <div className="grid gap-2">
-                <Label htmlFor="email-login">Correo Electrónico</Label>
+    <div className="space-y-6">
+        <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-800">Iniciar Sesión</h2>
+            <p className="text-gray-500 mt-2">Ingresa a tu cuenta de Tijuana Shop</p>
+        </div>
+        <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-1">
+                <Label htmlFor="email-login" className="font-medium text-gray-700">Correo Electrónico</Label>
                 <Input
                 id="email-login"
                 type="email"
@@ -149,11 +152,11 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
-                className="bg-zinc-100 dark:bg-zinc-800"
+                className="bg-gray-50 border-gray-300"
                 />
             </div>
-            <div className="grid gap-2">
-                <Label htmlFor="password-login">Contraseña</Label>
+            <div className="space-y-1">
+                <Label htmlFor="password-login" className="font-medium text-gray-700">Contraseña</Label>
                 <div className="relative">
                 <Input
                     id="password-login"
@@ -163,31 +166,24 @@ function LoginForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
-                    className="bg-zinc-100 dark:bg-zinc-800 pr-10"
+                    className="bg-gray-50 border-gray-300 pr-10"
                 />
-                <Button
+                <button
                     type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-500 hover:text-gray-700"
                     onClick={() => setShowPassword(!showPassword)}
                 >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
                 </div>
-                <Link href="#" className="text-right text-sm text-primary hover:underline">
+                <Link href="#" className="text-right text-sm text-pink-600 hover:underline block pt-1">
                 ¿Olvidaste tu contraseña?
                 </Link>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading} variant="teal">
+            <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded-lg transition-colors" disabled={isLoading}>
                 {isLoading ? "Iniciando..." : "Iniciar Sesión"}
             </Button>
         </form>
-        <div className="relative my-2">
-            <Separator />
-            <span className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">O</span>
-        </div>
-        <GoogleSignInButton onLoading={setIsLoading} />
     </div>
   );
 }
@@ -300,109 +296,118 @@ function RegisterForm() {
   };
 
   return (
-    <div className="grid gap-4">
-        <p className="text-sm text-muted-foreground">Regístrate para empezar a comprar y vender.</p>
-        <form onSubmit={handleRegister} className="grid gap-4">
-            <div className="grid gap-2">
-                <Label htmlFor="full-name">Nombre</Label>
-                <Input id="full-name" placeholder="Tu nombre" required value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={isLoading} className="bg-zinc-100 dark:bg-zinc-800" />
+    <div className="space-y-6">
+        <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-800">Crear Cuenta</h2>
+            <p className="text-gray-500 mt-2">Únete a la comunidad de Tijuana Shop</p>
+        </div>
+        <form onSubmit={handleRegister} className="space-y-4">
+            <div className="space-y-1">
+                <Label htmlFor="full-name" className="font-medium text-gray-700">Nombre</Label>
+                <Input id="full-name" placeholder="Tu nombre" required value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={isLoading} className="bg-gray-50 border-gray-300" />
             </div>
-            <div className="grid gap-2">
-                <Label htmlFor="email-register">Correo Electrónico</Label>
-                <Input id="email-register" type="email" placeholder="tu@correo.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} className="bg-zinc-100 dark:bg-zinc-800" />
+            <div className="space-y-1">
+                <Label htmlFor="email-register" className="font-medium text-gray-700">Correo Electrónico</Label>
+                <Input id="email-register" type="email" placeholder="tu@correo.com" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} className="bg-gray-50 border-gray-300" />
             </div>
-            <div className="grid gap-2">
-                <Label htmlFor="password-register">Contraseña</Label>
-                <div className="relative">
-                    <Input id="password-register" type={showPassword ? "text" : "password"} placeholder="Crea una contraseña" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} className="bg-zinc-100 dark:bg-zinc-800 pr-10" />
-                    <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground" onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            <div className="space-y-1">
+                <Label htmlFor="password-register" className="font-medium text-gray-700">Contraseña</Label>
+                 <div className="relative">
+                    <Input id="password-register" type={showPassword ? "text" : "password"} placeholder="Crea una contraseña" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} className="bg-gray-50 border-gray-300 pr-10" />
+                    <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-500 hover:text-gray-700" onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                </div>
+            </div>
+            <div className="space-y-1">
+                <Label htmlFor="location" className="font-medium text-gray-700">Ubicación</Label>
+                <div className="flex gap-2">
+                    <div className="relative flex-grow">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Input id="location" value="Tijuana, MX" disabled className="pl-10 bg-gray-200 cursor-not-allowed" />
+                    </div>
+                    <Button type="button" variant={locationVerified ? "success" : "outline"} onClick={handleLocationVerification} disabled={isVerifyingLocation || locationVerified} className="whitespace-nowrap">
+                        {isVerifyingLocation ? "Verificando..." : (locationVerified ? "Verificado" : "Verificar")}
                     </Button>
                 </div>
-            </div>
-            <div className="grid gap-2">
-                <Label htmlFor="location">Ubicación</Label>
-                <div className="flex gap-2">
-                <div className="relative flex-grow">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="location" value="Tijuana" disabled className="pl-8 bg-zinc-100 dark:bg-zinc-800" />
-                </div>
-                <Button type="button" variant={locationVerified ? "secondary" : "outline"} onClick={handleLocationVerification} disabled={isVerifyingLocation || locationVerified}>
-                    {isVerifyingLocation ? "Verificando..." : (locationVerified ? "Verificado" : "Verificar")}
-                </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">Debes verificar que estás en Tijuana para crear una cuenta.</p>
+                <p className="text-xs text-gray-500 pt-1">Debes estar en Tijuana para registrarte.</p>
             </div>
             
-            <div className="flex items-start space-x-2 pt-2">
+            <div className="flex items-start space-x-3 pt-2">
                 <Checkbox
                     id="terms"
                     onCheckedChange={(checked) => setTermsAccepted(Boolean(checked))}
+                    className="mt-0.5"
                 />
                 <Label
                     htmlFor="terms"
-                    className="text-sm font-normal text-muted-foreground leading-snug"
+                    className="text-sm font-normal text-gray-600"
                 >
                     Acepto los{" "}
-                    <Link
-                    href="/terms"
-                    className="underline text-primary hover:text-primary/80"
-                    >
+                    <Link href="/terms" className="underline text-pink-600 hover:text-pink-700">
                     Términos y Condiciones
-                    </Link>{" "}
-                    y la{" "}
-                    <Link
-                    href="/privacy"
-                    className="underline text-primary hover:text-primary/80"
-                    >
-                    Política de Privacidad
                     </Link>
-                    .
                 </Label>
             </div>
 
-
-            <Button type="submit" className="w-full" disabled={isLoading || !termsAccepted || !locationVerified} variant="teal">
-                <UserPlus className="mr-2 h-4 w-4" />
+            <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition-colors" disabled={isLoading || !termsAccepted || !locationVerified}>
+                <UserPlus className="mr-2 h-5 w-5" />
                 {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
             </Button>
         </form>
-         <div className="relative my-2">
-            <Separator />
-            <span className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">O</span>
-        </div>
-        <GoogleSignInButton onLoading={setIsLoading} />
     </div>
   );
+}
+
+function AuthPageContent() {
+    const searchParams = useSearchParams();
+    const defaultTab = searchParams.get('tab') || 'login';
+    const [activeTab, setActiveTab] = useState(defaultTab);
+
+    return (
+        <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+            <div className="mb-8 text-center">
+                 <Logo />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 rounded-lg bg-gray-200 p-1 mb-6">
+                <button
+                    onClick={() => setActiveTab('login')}
+                    className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors ${activeTab === 'login' ? 'bg-white shadow text-gray-800' : 'text-gray-600 hover:bg-gray-300'}`}
+                >
+                    Iniciar Sesión
+                </button>
+                <button
+                    onClick={() => setActiveTab('register')}
+                     className={`px-4 py-2 text-sm font-semibold rounded-md transition-colors ${activeTab === 'register' ? 'bg-white shadow text-gray-800' : 'text-gray-600 hover:bg-gray-300'}`}
+                >
+                    Crear Cuenta
+                </button>
+            </div>
+            
+            {activeTab === 'login' && <LoginForm />}
+            {activeTab === 'register' && (
+                <>
+                    <RegisterForm />
+                     <div className="relative my-6">
+                        <Separator />
+                        <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-white px-2 text-sm text-gray-500">O</span>
+                    </div>
+                    <GoogleSignInButton onLoading={() => {}} />
+                </>
+            )}
+        </div>
+    );
 }
 
 export default function AuthPage() {
-    const searchParams = useSearchParams();
-    const defaultTab = searchParams.get('tab') || 'login';
-
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-zinc-100 dark:bg-zinc-900 p-4">
-        <div className="mb-6">
-            <Logo />
+    return (
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+            <Suspense fallback={<div className="text-center">Cargando...</div>}>
+                <AuthPageContent />
+            </Suspense>
         </div>
-      <Tabs defaultValue={defaultTab} className="w-full max-w-md">
-        <TabsList className="grid w-full grid-cols-2 bg-zinc-200 dark:bg-zinc-800 h-12 rounded-t-lg rounded-b-none">
-          <TabsTrigger value="login" className="rounded-t-lg rounded-b-none h-full text-base">Iniciar Sesión</TabsTrigger>
-          <TabsTrigger value="register" className="rounded-t-lg rounded-b-none h-full text-base">Crear Cuenta</TabsTrigger>
-        </TabsList>
-        <Card className="mt-0 shadow-lg rounded-t-none">
-             <TabsContent value="login">
-                 <CardContent className="pt-6">
-                    <LoginForm />
-                </CardContent>
-            </TabsContent>
-            <TabsContent value="register">
-                 <CardContent className="pt-6">
-                    <RegisterForm />
-                </CardContent>
-            </TabsContent>
-        </Card>
-      </Tabs>
-    </div>
-  );
+    );
 }
+
+    
